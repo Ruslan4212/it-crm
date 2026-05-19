@@ -1,5 +1,4 @@
 # Development override — enables live reload for backend and frontend
-version: "3.8"
 services:
   backend:
     volumes:
@@ -9,14 +8,13 @@ services:
     command: npx nodemon index.js
 
   frontend:
+    image: node:22-alpine
+    working_dir: /app
     volumes:
-      - ./frontend/src:/app/src
-    environment:
-      - NODE_ENV=development
-    command: npm run dev -- --host 0.0.0.0
+      - ./frontend:/app
+      - /app/node_modules
     ports:
       - "5173:5173"
-
-  nginx:
-    ports:
-      - "80:80"
+    environment:
+      - NODE_ENV=development
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
