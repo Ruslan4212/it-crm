@@ -1,0 +1,283 @@
+import { createContext, useContext, useState } from 'react';
+
+const ru = {
+  app: { title: 'IT-CRM', subtitle: 'Управление задачами' },
+  nav: { dashboard: 'Дашборд', tasks: 'Задачи', groups: 'Группы', users: 'Пользователи', logout: 'Выйти' },
+  login: {
+    signIn: 'Добро пожаловать',
+    subtitle: 'Войдите в систему управления задачами',
+    email: 'Email',
+    password: 'Пароль',
+    signInBtn: 'Войти',
+    noAccount: 'Нет аккаунта?',
+    register: 'Зарегистрироваться',
+    error: 'Неверный email или пароль',
+  },
+  register: {
+    title: 'Создать аккаунт',
+    subtitle: 'Зарегистрируйтесь для работы в системе',
+    name: 'Имя и фамилия',
+    email: 'Email',
+    password: 'Пароль',
+    btn: 'Создать аккаунт',
+    haveAccount: 'Уже есть аккаунт?',
+    signIn: 'Войти',
+    success: 'Регистрация успешна',
+  },
+  dashboard: {
+    title: 'Дашборд',
+    totalTasks: 'Всего задач',
+    active: 'В работе',
+    completed: 'Выполнено',
+    completionRate: 'Выполнение',
+    loading: 'Загрузка...',
+    tasksByStatus: 'Задачи по статусам',
+    recentTasks: 'Последние задачи',
+    noTasks: 'Пока нет задач',
+    groups: 'Групп',
+    users: 'Пользователей',
+    today: 'Сегодня',
+  },
+  tasks: {
+    title: 'Задачи',
+    add: 'Создать задачу',
+    cancel: 'Отмена',
+    allStatuses: 'Все статусы',
+    new: 'Новая',
+    inProgress: 'В работе',
+    done: 'Готова',
+    allPriorities: 'Все приоритеты',
+    low: 'Низкий',
+    medium: 'Средний',
+    high: 'Высокий',
+    titleLabel: 'Название задачи',
+    description: 'Описание',
+    priorityLabel: 'Приоритет',
+    status: 'Статус',
+    assignee: 'Исполнитель',
+    actions: 'Действия',
+    complete: 'Завершить',
+    edit: 'Редактировать',
+    delete: 'Удалить',
+    deleteConfirm: 'Удалить эту задачу?',
+    create: 'Создать',
+    save: 'Сохранить',
+    empty: 'Задачи не найдены',
+    search: 'Поиск задач...',
+    chooseMultiple: 'можно выбрать несколько',
+  },
+  common: {
+    loading: 'Загрузка...',
+    error: 'Ошибка',
+    save: 'Сохранить',
+    cancel: 'Отмена',
+    confirm: 'Подтвердить',
+  },
+  groups: {
+    title: 'Группы',
+    add: 'Создать группу',
+    edit: 'Редактировать',
+    delete: 'Удалить',
+    deleteConfirm: 'Удалить эту группу?',
+    name: 'Название группы',
+    description: 'Описание',
+    create: 'Создать',
+    save: 'Сохранить',
+    cancel: 'Отмена',
+    members: 'Участники',
+    tasks: 'Задачи группы',
+    noMembers: 'Нет участников',
+    noTasks: 'Нет задач',
+    addMember: 'Добавить участника',
+    removeMember: 'Исключить',
+    removeMemberConfirm: 'Исключить участника из группы?',
+    search: 'Поиск групп...',
+    empty: 'Группы не созданы',
+    selectGroup: 'Выберите группу',
+    taskCount: 'задач',
+    memberCount: 'участников',
+    createdBy: 'Создатель',
+  },
+  profile: {
+    changePassword: 'Сменить пароль',
+    currentPassword: 'Текущий пароль',
+    newPassword: 'Новый пароль',
+    changeBtn: 'Изменить пароль',
+    success: 'Пароль успешно изменён',
+    error: 'Неверный текущий пароль',
+  },
+  users: {
+    title: 'Пользователи',
+    add: 'Создать пользователя',
+    edit: 'Редактировать',
+    delete: 'Удалить',
+    deleteConfirm: 'Удалить этого пользователя?',
+    email: 'Email',
+    fullName: 'Имя и фамилия',
+    password: 'Пароль',
+    role: 'Роль',
+    create: 'Создать',
+    save: 'Сохранить',
+    cancel: 'Отмена',
+    created: 'Создан',
+    noSelfDelete: 'Нельзя удалить себя',
+  },
+  statuses: { new: 'Новая', in_progress: 'В работе', done: 'Готова' },
+};
+
+const en = {
+  app: { title: 'IT-CRM', subtitle: 'Task Management' },
+  nav: { dashboard: 'Dashboard', tasks: 'Tasks', groups: 'Groups', users: 'Users', logout: 'Logout' },
+  login: {
+    signIn: 'Welcome back',
+    subtitle: 'Sign in to your task management system',
+    email: 'Email',
+    password: 'Password',
+    signInBtn: 'Sign In',
+    noAccount: "Don't have an account?",
+    register: 'Register',
+    error: 'Invalid email or password',
+  },
+  register: {
+    title: 'Create Account',
+    subtitle: 'Register to start managing your tasks',
+    name: 'Full Name',
+    email: 'Email',
+    password: 'Password',
+    btn: 'Create Account',
+    haveAccount: 'Already have an account?',
+    signIn: 'Sign In',
+    success: 'Registration successful',
+  },
+  dashboard: {
+    title: 'Dashboard',
+    totalTasks: 'Total Tasks',
+    active: 'Active',
+    completed: 'Completed',
+    completionRate: 'Completion Rate',
+    loading: 'Loading...',
+    tasksByStatus: 'Tasks by Status',
+    recentTasks: 'Recent Tasks',
+    noTasks: 'No tasks yet',
+    groups: 'Groups',
+    users: 'Users',
+    today: 'Today',
+  },
+  tasks: {
+    title: 'Tasks',
+    add: 'New Task',
+    cancel: 'Cancel',
+    allStatuses: 'All statuses',
+    new: 'New',
+    inProgress: 'In Progress',
+    done: 'Done',
+    allPriorities: 'All priorities',
+    low: 'Low',
+    medium: 'Medium',
+    high: 'High',
+    titleLabel: 'Task title',
+    description: 'Description',
+    priorityLabel: 'Priority',
+    status: 'Status',
+    assignee: 'Assignee',
+    actions: 'Actions',
+    complete: 'Complete',
+    edit: 'Edit',
+    delete: 'Delete',
+    deleteConfirm: 'Delete this task?',
+    create: 'Create',
+    save: 'Save',
+    empty: 'No tasks found',
+    search: 'Search tasks...',
+    chooseMultiple: 'select multiple',
+  },
+  common: {
+    loading: 'Loading...',
+    error: 'Error',
+    save: 'Save',
+    cancel: 'Cancel',
+    confirm: 'Confirm',
+  },
+  profile: {
+    changePassword: 'Change Password',
+    currentPassword: 'Current Password',
+    newPassword: 'New Password',
+    changeBtn: 'Change Password',
+    success: 'Password changed successfully',
+    error: 'Current password is incorrect',
+  },
+  users: {
+    title: 'Users',
+    add: 'Create User',
+    edit: 'Edit',
+    delete: 'Delete',
+    deleteConfirm: 'Delete this user?',
+    email: 'Email',
+    fullName: 'Full Name',
+    password: 'Password',
+    role: 'Role',
+    create: 'Create',
+    save: 'Save',
+    cancel: 'Cancel',
+    created: 'Created',
+    noSelfDelete: 'Cannot delete yourself',
+  },
+  statuses: { new: 'New', in_progress: 'In Progress', done: 'Done' },
+  groups: {
+    title: 'Groups',
+    add: 'Create Group',
+    edit: 'Edit',
+    delete: 'Delete',
+    deleteConfirm: 'Delete this group?',
+    name: 'Group Name',
+    description: 'Description',
+    create: 'Create',
+    save: 'Save',
+    cancel: 'Cancel',
+    members: 'Members',
+    tasks: 'Group Tasks',
+    noMembers: 'No members',
+    noTasks: 'No tasks',
+    addMember: 'Add Member',
+    removeMember: 'Remove',
+    removeMemberConfirm: 'Remove member from group?',
+    search: 'Search groups...',
+    empty: 'No groups yet',
+    selectGroup: 'Select group',
+    taskCount: 'tasks',
+    memberCount: 'members',
+    createdBy: 'Created by',
+  },
+};
+
+const locales = { ru, en };
+
+const LocaleContext = createContext(null);
+
+export function LocaleProvider({ children }) {
+  const saved = localStorage.getItem('locale') || 'ru';
+  const [locale, setLocale] = useState(saved);
+
+  const changeLocale = (l) => {
+    setLocale(l);
+    localStorage.setItem('locale', l);
+  };
+
+  const t = (path) => {
+    const keys = path.split('.');
+    let val = locales[locale];
+    for (const k of keys) {
+      if (val && typeof val === 'object') val = val[k];
+      else return path;
+    }
+    return val != null ? val : path;
+  };
+
+  return (
+    <LocaleContext.Provider value={{ locale, changeLocale, t, tr: t }}>
+      {children}
+    </LocaleContext.Provider>
+  );
+}
+
+export const useLocale = () => useContext(LocaleContext);
