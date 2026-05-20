@@ -215,9 +215,7 @@ export default function Tasks() {
                         {task.title}
                       </div>
                       {task.description && (
-                        <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 2, maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {task.description}
-                        </div>
+                        <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 2, maxWidth: 350, lineHeight: 1.4 }}>{task.description}</div>
                       )}
                     </td>
                     <td>

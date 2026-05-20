@@ -58,3 +58,13 @@ CREATE TABLE IF NOT EXISTS task_groups (
     group_id INTEGER NOT NULL REFERENCES groups_table(id) ON DELETE CASCADE,
     PRIMARY KEY (task_id, group_id)
 );
+
+CREATE TABLE IF NOT EXISTS events (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    event_date DATE NOT NULL,
+    event_time TIME,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);

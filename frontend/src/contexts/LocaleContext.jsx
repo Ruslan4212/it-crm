@@ -2,7 +2,7 @@ import { createContext, useContext, useState } from 'react';
 
 const ru = {
   app: { title: 'IT-CRM', subtitle: 'Управление задачами' },
-  nav: { dashboard: 'Дашборд', tasks: 'Задачи', groups: 'Группы', users: 'Пользователи', logout: 'Выйти' },
+  nav: { dashboard: 'Дашборд', tasks: 'Задачи', groups: 'Группы', users: 'Пользователи', calendar: 'Календарь', logout: 'Выйти' },
   login: {
     signIn: 'Добро пожаловать',
     subtitle: 'Войдите в систему управления задачами',
@@ -106,6 +106,20 @@ const ru = {
     memberCount: 'участников',
     createdBy: 'Создатель',
   },
+  calendar: {
+    title: 'Календарь',
+    add: 'Создать событие',
+    edit: 'Редактировать',
+    delete: 'Удалить',
+    deleteConfirm: 'Удалить это событие?',
+    create: 'Создать',
+    todayEvents: 'События сегодня',
+    noEvents: 'Нет событий на сегодня',
+    name: 'Название',
+    description: 'Описание',
+    date: 'Дата',
+    time: 'Время',
+  },
   profile: {
     changePassword: 'Сменить пароль',
     currentPassword: 'Текущий пароль',
@@ -135,7 +149,7 @@ const ru = {
 
 const en = {
   app: { title: 'IT-CRM', subtitle: 'Task Management' },
-  nav: { dashboard: 'Dashboard', tasks: 'Tasks', groups: 'Groups', users: 'Users', logout: 'Logout' },
+  nav: { dashboard: 'Dashboard', tasks: 'Tasks', groups: 'Groups', users: 'Users', calendar: 'Calendar', logout: 'Logout' },
   login: {
     signIn: 'Welcome back',
     subtitle: 'Sign in to your task management system',
@@ -263,6 +277,20 @@ const en = {
     taskCount: 'tasks',
     memberCount: 'members',
     createdBy: 'Created by',
+  },
+  calendar: {
+    title: 'Calendar',
+    add: 'New Event',
+    edit: 'Edit',
+    delete: 'Delete',
+    deleteConfirm: 'Delete this event?',
+    create: 'Create',
+    todayEvents: "Today's Events",
+    noEvents: 'No events today',
+    name: 'Title',
+    description: 'Description',
+    date: 'Date',
+    time: 'Time',
   },
 };
 

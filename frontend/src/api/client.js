@@ -85,6 +85,14 @@ export const groups = {
   removeMember: (id, userId) => request(`/groups/${id}/members/${userId}`, { method: 'DELETE' }),
 };
 
+export const events = {
+  list: (params) => request(`/events?${new URLSearchParams(params || {})}`),
+  today: () => request('/events/today'),
+  create: (data) => request('/events', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id, data) => request(`/events/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  remove: (id) => request(`/events/${id}`, { method: 'DELETE' }),
+};
+
 export const users = {
   list: () => request('/users'),
   create: (data) => request('/users', { method: 'POST', body: JSON.stringify(data) }),

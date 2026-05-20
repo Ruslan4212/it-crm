@@ -198,8 +198,14 @@ const AI_MODEL = process.env.AI_MODEL || 'deepseek-v2-lite';
 async function aiParseTasks(rows) {
   const sample = rows.slice(0, Math.min(rows.length, 50));
   const prompt = `You are a data parser. Given spreadsheet rows with unknown columns, identify task data and return a JSON array.
-Each object must have: "title" (required), "description" (string, optional), "status" (one of: new, in_progress, done, default: new), "priority" (one of: low, medium, high, default: medium).
-Analyze headers and data to infer which columns map to these fields. Return ONLY valid JSON array, no markdown, no explanation.
+Each object must have:
+  "title" (required, string),
+  "description" (optional, string),
+  "status" (one of: new, in_progress, done, default: new),
+  "priority" (one of: low, medium, high, default: medium),
+  "assignee" (optional, string — full name or email of assignee),
+  "group" (optional, string — group name)
+Analyze headers and values to infer which columns map to these fields. Return ONLY valid JSON array, no markdown, no explanation.
 
 Input rows:
 ${JSON.stringify(sample, null, 2)}`;
@@ -263,6 +269,8 @@ exports.importTasks = async (req, res) => {
     }));
   }
 
+  const usersList = (await pool.query('SELECT id, full_name, email FROM users')).rows;
+
   let imported = 0;
   let errors = [];
 
@@ -279,13 +287,35 @@ exports.importTasks = async (req, res) => {
     const validStatus = ['new', 'in_progress', 'done'].includes(status) ? status : 'new';
     const validPriority = ['low', 'medium', 'high'].includes(priority) ? priority : 'medium';
 
+    let assigneeId = null;
+    if (task.assignee) {
+      const match = usersList.find(
+        u => u.full_name.toLowerCase() === task.assignee.toLowerCase() ||
+             u.email.toLowerCase() === task.assignee.toLowerCase()
+      );
+      if (match) assigneeId = match.id;
+    }
+
     try {
-      await pool.query(
-        `INSERT INTO tasks (title, description, status, priority, creator_id)
-         VALUES ($1, $2, $3, $4, $5)`,
-        [title, task.description || '', validStatus, validPriority, req.user.id]
+      const result = await pool.query(
+        `INSERT INTO tasks (title, description, status, priority, assignee_id, creator_id)
+         VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+        [title, task.description || '', validStatus, validPriority, assigneeId, req.user.id]
       );
       imported++;
+
+      if (task.group) {
+        const groupMatch = await pool.query(
+          "SELECT id FROM groups_table WHERE LOWER(name) = LOWER($1) LIMIT 1",
+          [task.group]
+        );
+        if (groupMatch.rows[0]) {
+          await pool.query(
+            'INSERT INTO task_groups (task_id, group_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+            [result.rows[0].id, groupMatch.rows[0].id]
+          );
+        }
+      }
     } catch (e) {
       errors.push({ row: i + 1, error: e.message });
     }

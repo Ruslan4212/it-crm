@@ -9,6 +9,7 @@ import Tasks from './pages/Tasks';
 import Groups from './pages/Groups';
 import GroupDetail from './pages/GroupDetail';
 import Users from './pages/Users';
+import Calendar from './pages/Calendar';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -28,6 +29,7 @@ function AppRoutes() {
         <Route path="groups" element={<Groups />} />
         <Route path="groups/:id" element={<GroupDetail />} />
         <Route path="users" element={<Users />} />
+        <Route path="calendar" element={<Calendar />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
