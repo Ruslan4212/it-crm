@@ -43,3 +43,7 @@ psql:
 # Run migrations manually (if needed)
 migrate:
 	docker compose exec -T backend node src/db/migrate.js
+
+# Generate dev SSL certificates
+certs:
+	scripts/gen-certs.sh

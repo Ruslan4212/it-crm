@@ -16,6 +16,7 @@ services:
     working_dir: /app
     volumes:
       - ./frontend:/app
+      - ./certs:/certs
       - /app/node_modules
     ports:
       - "5173:5173"
