@@ -17,6 +17,17 @@ exports.list = async (req, res) => {
     params.push(`%${search}%`);
     idx++;
   }
+  if (req.user.role !== 'admin') {
+    where += ` AND (t.creator_id = $${idx} OR EXISTS (
+      SELECT 1 FROM task_groups tg
+      JOIN group_members gm ON gm.group_id = tg.group_id
+      WHERE tg.task_id = t.id AND gm.user_id = $${idx}
+    ) OR NOT EXISTS (
+      SELECT 1 FROM task_groups WHERE task_id = t.id
+    ))`;
+    params.push(req.user.id);
+    idx++;
+  }
 
   const countResult = await pool.query(
     `SELECT COUNT(*) FROM tasks t ${where}`, params

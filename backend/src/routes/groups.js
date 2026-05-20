@@ -4,6 +4,12 @@ const { authenticate } = require('../middleware/auth');
 
 const router = Router();
 
+router.get('/public', async (req, res) => {
+  const { pool } = require('../db');
+  const result = await pool.query('SELECT id, name FROM groups_table ORDER BY name');
+  res.json(result.rows);
+});
+
 router.use(authenticate);
 
 router.get('/', ctrl.list);

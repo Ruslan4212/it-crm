@@ -23,6 +23,7 @@ const ru = {
     haveAccount: 'Уже есть аккаунт?',
     signIn: 'Войти',
     success: 'Регистрация успешна',
+    selectGroups: 'Выберите группы (участники увидят задачи своих групп)',
   },
   dashboard: {
     title: 'Дашборд',
@@ -178,6 +179,7 @@ const en = {
     haveAccount: 'Already have an account?',
     signIn: 'Sign In',
     success: 'Registration successful',
+    selectGroups: 'Select groups (members see tasks from their groups)',
   },
   dashboard: {
     title: 'Dashboard',
