@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useLocale } from '../contexts/LocaleContext';
 import { useState, useEffect } from 'react';
 import { auth, events } from '../api/client';
+import ChatWidget from './ChatWidget';
 
 const Icons = {
   dashboard: (
@@ -203,6 +204,8 @@ export default function Layout() {
           <Outlet />
         </main>
       </div>
+
+      <ChatWidget />
 
       {pwModal && (
         <div className="modal-overlay" onClick={() => setPwModal(false)}>

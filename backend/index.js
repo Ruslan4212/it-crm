@@ -18,6 +18,7 @@ app.use('/api/tasks', require('./src/routes/tasks'));
 app.use('/api/groups', require('./src/routes/groups'));
 app.use('/api/users', require('./src/routes/users'));
 app.use('/api/events', require('./src/routes/events'));
+app.use('/api/chat', require('./src/routes/chat'));
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });

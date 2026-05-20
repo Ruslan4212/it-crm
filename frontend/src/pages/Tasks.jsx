@@ -211,12 +211,14 @@ export default function Tasks() {
                       </button>
                     </td>
                     <td>
-                      <div style={{ fontWeight: 500, textDecoration: task.status === 'done' ? 'line-through' : 'none', color: task.status === 'done' ? 'var(--text-tertiary)' : 'var(--text)' }}>
-                        {task.title}
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                        <span style={{ fontWeight: 500, textDecoration: task.status === 'done' ? 'line-through' : 'none', color: task.status === 'done' ? 'var(--text-tertiary)' : 'var(--text)', whiteSpace: 'nowrap' }}>
+                          {task.title}
+                        </span>
+                        {task.description && (
+                          <span style={{ fontSize: 12, color: 'var(--text-tertiary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{task.description}</span>
+                        )}
                       </div>
-                      {task.description && (
-                        <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 2, maxWidth: 350, lineHeight: 1.4 }}>{task.description}</div>
-                      )}
                     </td>
                     <td>
                       <select

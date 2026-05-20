@@ -306,7 +306,7 @@ exports.importTasks = async (req, res) => {
 
       if (task.group) {
         const groupMatch = await pool.query(
-          "SELECT id FROM groups_table WHERE LOWER(name) = LOWER($1) LIMIT 1",
+          "SELECT id FROM groups_table WHERE LOWER(TRIM(name)) = LOWER(TRIM($1)) LIMIT 1",
           [task.group]
         );
         if (groupMatch.rows[0]) {

@@ -144,6 +144,14 @@ const ru = {
     created: 'Создан',
     noSelfDelete: 'Нельзя удалить себя',
   },
+  chat: {
+    title: 'AI Ассистент',
+    placeholder: 'Напишите задачу или вопрос...',
+    welcome: 'Привет! Я AI ассистент. Могу создать задачу, назначить группу и приоритет. Попробуй сказать "создай задачу настроить мониторинг сервера"',
+    thinking: 'Думаю...',
+    voice: 'Голосовой ввод',
+    noSpeech: 'Голосовой ввод не поддерживается в этом браузере',
+  },
   statuses: { new: 'Новая', in_progress: 'В работе', done: 'Готова' },
 };
 
@@ -251,6 +259,14 @@ const en = {
     cancel: 'Cancel',
     created: 'Created',
     noSelfDelete: 'Cannot delete yourself',
+  },
+  chat: {
+    title: 'AI Assistant',
+    placeholder: 'Type a task or question...',
+    welcome: 'Hi! I\'m your AI assistant. I can create tasks, assign groups and priority. Try saying "create a task to setup server monitoring"',
+    thinking: 'Thinking...',
+    voice: 'Voice input',
+    noSpeech: 'Speech recognition is not supported in this browser',
   },
   statuses: { new: 'New', in_progress: 'In Progress', done: 'Done' },
   groups: {
