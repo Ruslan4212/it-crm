@@ -5,6 +5,10 @@ services:
       - ./backend/src:/app/src
     environment:
       - NODE_ENV=development
+      - AI_ENDPOINT=http://host.docker.internal:8081
+      - AI_MODEL=deepseek-v2-lite
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     command: npx nodemon index.js
 
   frontend:

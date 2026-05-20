@@ -71,6 +71,7 @@ const ru = {
     importHint: 'Форматы: .xlsx, .xls, .csv',
     importBtn: 'Загрузить',
     importSuccess: 'Импортировано задач',
+    importAi: 'AI — автоматически определить поля',
   },
   common: {
     loading: 'Загрузка...',
@@ -203,6 +204,7 @@ const en = {
     importHint: 'Formats: .xlsx, .xls, .csv',
     importBtn: 'Upload',
     importSuccess: 'Tasks imported',
+    importAi: 'AI — auto-detect columns',
   },
   common: {
     loading: 'Loading...',

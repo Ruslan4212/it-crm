@@ -192,8 +192,47 @@ exports.exportTasks = async (req, res) => {
   res.send(buf);
 };
 
+const AI_ENDPOINT = process.env.AI_ENDPOINT || 'http://host.docker.internal:8081';
+const AI_MODEL = process.env.AI_MODEL || 'deepseek-v2-lite';
+
+async function aiParseTasks(rows) {
+  const sample = rows.slice(0, Math.min(rows.length, 50));
+  const prompt = `You are a data parser. Given spreadsheet rows with unknown columns, identify task data and return a JSON array.
+Each object must have: "title" (required), "description" (string, optional), "status" (one of: new, in_progress, done, default: new), "priority" (one of: low, medium, high, default: medium).
+Analyze headers and data to infer which columns map to these fields. Return ONLY valid JSON array, no markdown, no explanation.
+
+Input rows:
+${JSON.stringify(sample, null, 2)}`;
+
+  const body = {
+    model: AI_MODEL,
+    messages: [{ role: 'user', content: prompt }],
+    temperature: 0.1,
+    max_tokens: 4096,
+  };
+
+  const res = await fetch(`${AI_ENDPOINT}/v1/chat/completions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`AI API error ${res.status}: ${text}`);
+  }
+
+  const data = await res.json();
+  const content = data.choices?.[0]?.message?.content || '';
+  const jsonMatch = content.match(/\[[\s\S]*\]/);
+  if (!jsonMatch) throw new Error('AI response did not contain valid JSON');
+  return JSON.parse(jsonMatch[0]);
+}
+
 exports.importTasks = async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'File is required' });
+
+  const ai_parse = req.body.ai_parse === 'true' || req.body.ai_parse === true;
 
   let workbook;
   try {
@@ -205,27 +244,46 @@ exports.importTasks = async (req, res) => {
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
   const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
 
+  if (rows.length === 0) return res.json({ imported: 0 });
+
+  let tasksToCreate;
+
+  if (ai_parse) {
+    try {
+      tasksToCreate = await aiParseTasks(rows);
+    } catch (e) {
+      return res.status(422).json({ error: `AI parsing failed: ${e.message}` });
+    }
+  } else {
+    tasksToCreate = rows.map(row => ({
+      title: row.Title || row.title || row.Название || row.Заголовок || row.Наименование || '',
+      description: row.Description || row.description || row.Описание || '',
+      status: (row.Status || row.status || 'new').toLowerCase(),
+      priority: (row.Priority || row.priority || 'medium').toLowerCase(),
+    }));
+  }
+
   let imported = 0;
   let errors = [];
 
-  for (let i = 0; i < rows.length; i++) {
-    const row = rows[i];
-    const title = row.Title || row.title || row.Название;
+  for (let i = 0; i < tasksToCreate.length; i++) {
+    const task = tasksToCreate[i];
+    const title = (task.title || '').trim();
     if (!title) {
       errors.push({ row: i + 1, error: 'Missing title' });
       continue;
     }
 
-    const status = (row.Status || row.status || 'new').toLowerCase();
-    const priority = (row.Priority || row.priority || 'medium').toLowerCase();
+    const status = (task.status || 'new').toLowerCase();
+    const priority = (task.priority || 'medium').toLowerCase();
     const validStatus = ['new', 'in_progress', 'done'].includes(status) ? status : 'new';
     const validPriority = ['low', 'medium', 'high'].includes(priority) ? priority : 'medium';
 
     try {
-      const result = await pool.query(
+      await pool.query(
         `INSERT INTO tasks (title, description, status, priority, creator_id)
-         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-        [title, row.Description || row.description || '', validStatus, validPriority, req.user.id]
+         VALUES ($1, $2, $3, $4, $5)`,
+        [title, task.description || '', validStatus, validPriority, req.user.id]
       );
       imported++;
     } catch (e) {

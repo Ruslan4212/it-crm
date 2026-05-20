@@ -34,11 +34,14 @@ export const auth = {
     request('/auth/password', { method: 'PUT', body: JSON.stringify({ current_password, new_password }) }),
 };
 
-async function requestFile(path, file) {
+async function requestFile(path, file, extraFields = {}) {
   const headers = {};
   if (token) headers['Authorization'] = `Bearer ${token}`;
   const formData = new FormData();
   formData.append('file', file);
+  for (const [key, val] of Object.entries(extraFields)) {
+    formData.append(key, val);
+  }
   const res = await fetch(`${API}${path}`, { method: 'POST', headers, body: formData });
   if (res.status === 401) {
     setToken(null);
@@ -69,7 +72,7 @@ export const tasks = {
       a.click();
     });
   },
-  importTasks: (file) => requestFile('/tasks/import', file),
+  importTasks: (file, aiParse = false) => requestFile('/tasks/import', file, { ai_parse: aiParse ? 'true' : 'false' }),
 };
 
 export const groups = {

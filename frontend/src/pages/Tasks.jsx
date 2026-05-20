@@ -15,6 +15,7 @@ export default function Tasks() {
   const [form, setForm] = useState({ title: '', description: '', priority: 'medium', status: 'new', group_ids: [] });
   const [groupList, setGroupList] = useState([]);
   const [showImport, setShowImport] = useState(false);
+  const [importAi, setImportAi] = useState(true);
   const [importResult, setImportResult] = useState(null);
   const { t } = useLocale();
 
@@ -104,7 +105,7 @@ export default function Tasks() {
     const file = e.target.file.files[0];
     if (!file) return;
     try {
-      const result = await tasks.importTasks(file);
+      const result = await tasks.importTasks(file, importAi);
       setImportResult(result);
       load();
     } catch (err) {
@@ -130,7 +131,7 @@ export default function Tasks() {
             </svg>
             {t('tasks.export')}
           </button>
-          <button className="btn btn-ghost" onClick={() => { setShowImport(true); setImportResult(null); }}>
+          <button className="btn btn-ghost" onClick={() => { setShowImport(true); setImportAi(true); setImportResult(null); }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" />
             </svg>
@@ -371,10 +372,16 @@ export default function Tasks() {
                     </button>
                   </div>
                 ) : (
-                  <div className="form-group">
-                    <label>{t('tasks.importFile')}</label>
-                    <input type="file" name="file" accept=".xlsx,.xls,.csv" required />
-                    <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 4 }}>{t('tasks.importHint')}</div>
+                  <div>
+                    <div className="form-group">
+                      <label>{t('tasks.importFile')}</label>
+                      <input type="file" name="file" accept=".xlsx,.xls,.csv" required />
+                      <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 4 }}>{t('tasks.importHint')}</div>
+                    </div>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: 'pointer', marginTop: 8 }}>
+                      <input type="checkbox" checked={importAi} onChange={e => setImportAi(e.target.checked)} style={{ width: 16, height: 16, accentColor: 'var(--primary)' }} />
+                      {t('tasks.importAi')}
+                    </label>
                   </div>
                 )}
               </div>
