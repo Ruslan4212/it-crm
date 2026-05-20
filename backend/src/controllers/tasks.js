@@ -1,4 +1,5 @@
 const { pool } = require('../db');
+const XLSX = require('xlsx');
 
 exports.list = async (req, res) => {
   const { status, priority, assignee_id, group_id, search, page = 1, limit = 20 } = req.query;
@@ -125,6 +126,114 @@ exports.remove = async (req, res) => {
   const result = await pool.query('DELETE FROM tasks WHERE id = $1 RETURNING id', [req.params.id]);
   if (!result.rows[0]) return res.status(404).json({ error: 'Task not found' });
   res.json({ message: 'Task deleted' });
+};
+
+exports.exportTasks = async (req, res) => {
+  const { format = 'xlsx', status, priority, group_id, search } = req.query;
+  const params = [];
+  let idx = 1;
+
+  let where = 'WHERE 1=1';
+  if (status) { where += ` AND t.status = $${idx++}`; params.push(status); }
+  if (priority) { where += ` AND t.priority = $${idx++}`; params.push(priority); }
+  if (group_id) {
+    where += ` AND EXISTS (SELECT 1 FROM task_groups tg WHERE tg.task_id = t.id AND tg.group_id = $${idx++})`;
+    params.push(group_id);
+  }
+  if (search) {
+    where += ` AND (t.title ILIKE $${idx} OR t.description ILIKE $${idx})`;
+    params.push(`%${search}%`);
+    idx++;
+  }
+
+  const result = await pool.query(
+    `SELECT t.id, t.title, t.description, t.status, t.priority,
+            t.deadline, t.created_at, t.updated_at, t.completed_at,
+            u.full_name as assignee_name,
+            COALESCE(
+              (SELECT string_agg(g.name, ', ') FROM task_groups tg
+               JOIN groups_table g ON g.id = tg.group_id WHERE tg.task_id = t.id),
+              ''
+            ) as groups
+     FROM tasks t
+     LEFT JOIN users u ON t.assignee_id = u.id
+     ${where}
+     ORDER BY t.created_at DESC`,
+    params
+  );
+
+  const rows = result.rows.map(r => ({
+    ID: r.id,
+    Title: r.title,
+    Description: r.description || '',
+    Status: r.status,
+    Priority: r.priority,
+    Assignee: r.assignee_name || '',
+    Groups: r.groups || '',
+    Deadline: r.deadline ? new Date(r.deadline).toISOString().slice(0, 10) : '',
+    Created: new Date(r.created_at).toISOString().slice(0, 10),
+    Completed: r.completed_at ? new Date(r.completed_at).toISOString().slice(0, 10) : '',
+  }));
+
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.json_to_sheet(rows);
+  XLSX.utils.book_append_sheet(wb, ws, 'Tasks');
+
+  if (format === 'csv') {
+    const csv = XLSX.utils.sheet_to_csv(ws);
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', 'attachment; filename=tasks.csv');
+    return res.send(csv);
+  }
+
+  const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  res.setHeader('Content-Disposition', 'attachment; filename=tasks.xlsx');
+  res.send(buf);
+};
+
+exports.importTasks = async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'File is required' });
+
+  let workbook;
+  try {
+    workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
+  } catch (e) {
+    return res.status(400).json({ error: 'Invalid file format' });
+  }
+
+  const sheet = workbook.Sheets[workbook.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+
+  let imported = 0;
+  let errors = [];
+
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    const title = row.Title || row.title || row.Название;
+    if (!title) {
+      errors.push({ row: i + 1, error: 'Missing title' });
+      continue;
+    }
+
+    const status = (row.Status || row.status || 'new').toLowerCase();
+    const priority = (row.Priority || row.priority || 'medium').toLowerCase();
+    const validStatus = ['new', 'in_progress', 'done'].includes(status) ? status : 'new';
+    const validPriority = ['low', 'medium', 'high'].includes(priority) ? priority : 'medium';
+
+    try {
+      const result = await pool.query(
+        `INSERT INTO tasks (title, description, status, priority, creator_id)
+         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+        [title, row.Description || row.description || '', validStatus, validPriority, req.user.id]
+      );
+      imported++;
+    } catch (e) {
+      errors.push({ row: i + 1, error: e.message });
+    }
+  }
+
+  res.json({ imported, errors: errors.length > 0 ? errors : undefined });
 };
 
 exports.stats = async (req, res) => {

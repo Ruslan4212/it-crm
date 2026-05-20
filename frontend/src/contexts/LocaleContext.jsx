@@ -65,6 +65,12 @@ const ru = {
     empty: 'Задачи не найдены',
     search: 'Поиск задач...',
     chooseMultiple: 'можно выбрать несколько',
+    export: 'Экспорт',
+    import: 'Импорт',
+    importFile: 'Выберите файл',
+    importHint: 'Форматы: .xlsx, .xls, .csv',
+    importBtn: 'Загрузить',
+    importSuccess: 'Импортировано задач',
   },
   common: {
     loading: 'Загрузка...',
@@ -72,6 +78,7 @@ const ru = {
     save: 'Сохранить',
     cancel: 'Отмена',
     confirm: 'Подтвердить',
+    ok: 'OK',
   },
   groups: {
     title: 'Группы',
@@ -190,6 +197,12 @@ const en = {
     empty: 'No tasks found',
     search: 'Search tasks...',
     chooseMultiple: 'select multiple',
+    export: 'Export',
+    import: 'Import',
+    importFile: 'Choose file',
+    importHint: 'Formats: .xlsx, .xls, .csv',
+    importBtn: 'Upload',
+    importSuccess: 'Tasks imported',
   },
   common: {
     loading: 'Loading...',
@@ -197,6 +210,7 @@ const en = {
     save: 'Save',
     cancel: 'Cancel',
     confirm: 'Confirm',
+    ok: 'OK',
   },
   profile: {
     changePassword: 'Change Password',

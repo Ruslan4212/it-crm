@@ -14,6 +14,8 @@ export default function Tasks() {
   const [editTask, setEditTask] = useState(null);
   const [form, setForm] = useState({ title: '', description: '', priority: 'medium', status: 'new', group_ids: [] });
   const [groupList, setGroupList] = useState([]);
+  const [showImport, setShowImport] = useState(false);
+  const [importResult, setImportResult] = useState(null);
   const { t } = useLocale();
 
   const load = () => {
@@ -88,6 +90,28 @@ export default function Tasks() {
     load();
   };
 
+  const handleExport = () => {
+    const params = {};
+    if (filters.status) params.status = filters.status;
+    if (filters.priority) params.priority = filters.priority;
+    if (filters.group_id) params.group_id = filters.group_id;
+    if (search) params.search = search;
+    tasks.exportTasks(params);
+  };
+
+  const handleImport = async (e) => {
+    e.preventDefault();
+    const file = e.target.file.files[0];
+    if (!file) return;
+    try {
+      const result = await tasks.importTasks(file);
+      setImportResult(result);
+      load();
+    } catch (err) {
+      setImportResult({ error: err.message });
+    }
+  };
+
   const activeCount = list.filter(t => t.status !== 'done').length;
 
   return (
@@ -99,12 +123,26 @@ export default function Tasks() {
             {total} · {activeCount} {t('dashboard.active')}
           </span>
         </h1>
-        <button className="btn btn-primary" onClick={openCreate}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-            <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
-          {t('tasks.add')}
-        </button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="btn btn-ghost" onClick={handleExport}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            {t('tasks.export')}
+          </button>
+          <button className="btn btn-ghost" onClick={() => { setShowImport(true); setImportResult(null); }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
+            {t('tasks.import')}
+          </button>
+          <button className="btn btn-primary" onClick={openCreate}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            {t('tasks.add')}
+          </button>
+        </div>
       </div>
 
       <div className="filters">
@@ -296,6 +334,56 @@ export default function Tasks() {
                 <button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>{t('tasks.cancel')}</button>
                 <button type="submit" className="btn btn-primary">{editTask ? t('tasks.save') : t('tasks.create')}</button>
               </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showImport && (
+        <div className="modal-overlay" onClick={() => { setShowImport(false); setImportResult(null); }}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 440 }}>
+            <div className="modal-header">
+              <h2>{t('tasks.import')}</h2>
+              <button className="modal-close" onClick={() => { setShowImport(false); setImportResult(null); }}>✕</button>
+            </div>
+            <form onSubmit={handleImport}>
+              <div className="modal-body">
+                {importResult ? (
+                  <div>
+                    {importResult.error ? (
+                      <p style={{ color: 'var(--danger)' }}>{importResult.error}</p>
+                    ) : (
+                      <div>
+                        <p style={{ color: 'var(--success)', fontWeight: 600, marginBottom: 8 }}>
+                          {t('tasks.importSuccess')}: {importResult.imported}
+                        </p>
+                        {importResult.errors && importResult.errors.length > 0 && (
+                          <div style={{ fontSize: 12, color: 'var(--danger)', maxHeight: 200, overflow: 'auto' }}>
+                            {importResult.errors.map((e, i) => (
+                              <div key={i}>Row {e.row}: {e.error}</div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    <button type="button" className="btn btn-primary" style={{ marginTop: 12 }} onClick={() => { setShowImport(false); setImportResult(null); }}>
+                      {t('common.ok')}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="form-group">
+                    <label>{t('tasks.importFile')}</label>
+                    <input type="file" name="file" accept=".xlsx,.xls,.csv" required />
+                    <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 4 }}>{t('tasks.importHint')}</div>
+                  </div>
+                )}
+              </div>
+              {!importResult && (
+                <div className="modal-footer">
+                  <button type="button" className="btn btn-ghost" onClick={() => { setShowImport(false); setImportResult(null); }}>{t('tasks.cancel')}</button>
+                  <button type="submit" className="btn btn-primary">{t('tasks.importBtn')}</button>
+                </div>
+              )}
             </form>
           </div>
         </div>

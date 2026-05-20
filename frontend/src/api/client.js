@@ -34,6 +34,22 @@ export const auth = {
     request('/auth/password', { method: 'PUT', body: JSON.stringify({ current_password, new_password }) }),
 };
 
+async function requestFile(path, file) {
+  const headers = {};
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const formData = new FormData();
+  formData.append('file', file);
+  const res = await fetch(`${API}${path}`, { method: 'POST', headers, body: formData });
+  if (res.status === 401) {
+    setToken(null);
+    window.location.href = '/login';
+    throw new Error('Unauthorized');
+  }
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Request failed');
+  return data;
+}
+
 export const tasks = {
   list: (params) => request(`/tasks?${new URLSearchParams(params)}`),
   getById: (id) => request(`/tasks/${id}`),
@@ -41,6 +57,19 @@ export const tasks = {
   update: (id, data) => request(`/tasks/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   remove: (id) => request(`/tasks/${id}`, { method: 'DELETE' }),
   stats: () => request('/tasks/stats'),
+  exportTasks: (params) => {
+    const qs = new URLSearchParams(params || {}).toString();
+    const url = `${API}/tasks/export${qs ? '?' + qs : ''}`;
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'tasks.xlsx';
+    const h = token ? { Authorization: `Bearer ${token}` } : {};
+    fetch(url, { headers: h }).then(r => r.blob()).then(blob => {
+      a.href = URL.createObjectURL(blob);
+      a.click();
+    });
+  },
+  importTasks: (file) => requestFile('/tasks/import', file),
 };
 
 export const groups = {
